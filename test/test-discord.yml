@@ -1,0 +1,12 @@
+apiVersion: cloud-build-notifiers/v1
+kind: DiscordNotifier
+metadata:
+  name: example-discord-notifier
+spec:
+  notification:
+    delivery:
+      webhookUrl:
+        secretRef: webhook-url
+  secrets:
+  - name: webhook-url
+    value: projects/<project_ID>/secrets/<secret-name>/versions/latest

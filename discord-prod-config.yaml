@@ -1,0 +1,12 @@
+apiVersion: cloud-build-notifiers/v1
+kind: DiscordNotifier
+metadata:
+  name: runit-discord-notifier
+spec:
+  notification:
+    delivery:
+      webhookUrl:
+        secretRef: webhook-url
+  secrets:
+  - name: webhook-url
+    value: projects/runit-498311/secrets/discord-webhook-url/versions/latest

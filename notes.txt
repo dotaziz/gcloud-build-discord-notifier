@@ -1,0 +1,12 @@
+Step                                                 | What you're doing
+  ------------------------------------------------------|-------------------------------------------------------------------------------------------------------
+   1                                                    | Scaffold a TS project with tsc, strict mode
+   2                                                    | Install express, @google-cloud/secret-manager, @google-cloud/storage, handlebars, js-yaml
+   3                                                    | Translate Go structs → TypeScript interfaces in types.ts
+   4                                                    | Translate statusEmbeds() → pure function in embeds.ts (near 1-to-1)
+   5                                                    | Translate buildMessage + writeMessage → messaging.ts
+   6                                                    | Replace CEL filter with a small pattern-matching compiler (no TS CEL library exists)
+   7                                                    | Replace SetUp() + framework config loading → async setUp() at startup using GCS + Secret Manager SDKs
+   8                                                    | Replace SendNotification() → Express POST / handler; Cloud Run receives Pub/Sub push over HTTP
+   9                                                    | Replace the Go Dockerfile with a two-stage Node Dockerfile
+   10                                                   | Port the test with Vitest (statusEmbeds is a pure function — easy to test)
