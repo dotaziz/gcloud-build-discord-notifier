@@ -1,4 +1,4 @@
-# Cloud Build Discord Notifier
+# Cloud Build Discord Notifier (TypeScript Port)
 
 This notifier uses Discord Webhooks to send notifications about your Google Cloud Build runs to a Discord channel.
 
@@ -14,7 +14,6 @@ This notifier expects the following structure in your configuration YAML file:
 
 - **`webhookUrl`**: A `secretRef: <name>` map referencing the secret entry holding your Discord Webhook URL.
 - **`filter`**: Optional status or substitution filters to control which build events trigger notifications.
-- **`template`**: Optional Handlebars-based JSON template string to customize the output message structure.
 
 ### Example configuration (`discord.yaml`):
 
@@ -36,7 +35,58 @@ spec:
   secrets:
   - name: webhook-url
     value: projects/<YOUR_PROJECT_ID>/secrets/discord-webhook-url/versions/latest
+  template:
+    body: |
+      {
+        "content": "Build {{build.id}} finished with status {{build.status}}."
+      }
 ```
+
+---
+
+## Customizing Messages via Code Modification
+
+If you want to customize the look, colors, titles, and layout of the Discord notification messages, you can do so directly by modifying the TypeScript codebase.
+
+### 1. The Embed Structure
+All Discord notifications are constructed as Discord Embed payloads. The layout logic lives in [`src/embeds.ts`](file:///app/src/embeds.ts):
+
+* **`STATUS_STYLE`**: Map status values (e.g., `WORKING`, `SUCCESS`) to specific emojis, titles, and HSL decimal colors.
+* **`statusEmbeds(build: Build, logUrl: string): Embed[]`**: This function is called with the full Cloud Build payload and constructs the embeds array.
+
+### 2. Example: Customizing Embeds
+To add custom fields (like build duration, steps executed, or custom messages) modify [`src/embeds.ts`](file:///app/src/embeds.ts):
+
+```typescript
+export const statusEmbeds = (build: Build, logUrl: string): Embed[] => {
+  const embeds: Embed[] = [];
+  const style = STATUS_STYLE[build.status];
+
+  // Primary Status Card
+  embeds.push({
+    title: style ? style.title : `ERROR - ${build.status}`,
+    color: style ? style.color : 14177041,
+    description: build.source?.repoSource?.repoName || "No repository info",
+    fields: [
+      {
+        name: "Build ID",
+        value: `\`${build.id}\``,
+        inline: true
+      },
+      {
+        name: "Console Log",
+        value: `[View Logs](${logUrl})`,
+        inline: true
+      }
+    ]
+  });
+
+  return embeds;
+}
+```
+
+### 3. Adding fields to `Build` payload type
+If you need additional metadata from the incoming Cloud Build payload (such as `substitutions`, `options`, etc.), add the properties to the `Build` type definition in [`src/types.ts`](file:///app/src/types.ts).
 
 ---
 
@@ -96,6 +146,12 @@ SERVICE_URL=$(gcloud run services describe gcloud-build-discord-notifier \
 gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
   --member="serviceAccount:service-<YOUR_PROJECT_NUMBER>@gcp-sa-pubsub.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountTokenCreator"
+
+# Grant the push subscription service account access to invoke the Cloud Run service
+gcloud run services add-iam-policy-binding gcloud-build-discord-notifier \
+  --region=us-central1 \
+  --member="serviceAccount:<SERVICE_ACCOUNT>" \
+  --role="roles/run.invoker"
 
 # Create the subscription
 gcloud pubsub subscriptions create cloud-builds-to-discord-sub \

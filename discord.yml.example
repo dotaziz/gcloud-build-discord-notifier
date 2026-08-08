@@ -24,4 +24,10 @@ spec:
   secrets:
   - name: webhook-url
     value: projects/<project_ID>/secrets/<secret-name>/versions/latest
+  template:
+    body: |
+      {
+        "content": "Build {{build.id}} finished with status {{build.status}}."
+      }
+
 
