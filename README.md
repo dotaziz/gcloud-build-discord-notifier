@@ -1,4 +1,4 @@
-# Cloud Build Discord Notifier (TypeScript Port)
+# Cloud Build Discord Notifier
 
 This notifier uses Discord Webhooks to send notifications about your Google Cloud Build runs to a Discord channel.
 
